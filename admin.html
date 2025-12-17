@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MYMOON STORES | Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" type="image/png" href="./img/logo.png" />
+  <style>
+    /* Admin Specific Styles */
+    :root {
+      --admin-bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+      --primary: #2563eb;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+    }
+
+    body {
+      background-color: var(--admin-bg);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Login Overlay */
+    #login-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Layout */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .admin-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Upload Preview */
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      position: relative;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .status-pill.loading {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .status-pill.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px;
+      background: #f9fafb;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    /* Inline Edits */
+    .inline-input {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 4px 8px;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 80px;
+    }
+
+    .inline-input:hover,
+    .inline-input:focus {
+      background: white;
+      border-color: var(--border-color);
+    }
+
+    /* Header Actions */
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      border: none;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+      border: none;
+    }
+
+    .btn-ghost {
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Login Overlay -->
+  <div id="login-overlay">
+    <div class="login-box">
+      <img src="./img/logo.png" alt="Logo" style="width: 60px; margin-bottom: 20px;">
+      <h3 style="margin-top: 0;">Admin Access</h3>
+      <input type="password" id="admin-pass" class="form-control" placeholder="Enter Password"
+        style="margin-bottom: 15px;">
+      <button class="button primary" onclick="attemptLogin()" style="width: 100%;">Unlock</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app-root" style="opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+
+    <!-- Topbar -->
+    <header style="background: white; border-bottom: 1px solid #e5e7eb; padding: 12px 20px;">
+      <div class="admin-container"
+        style="padding: 0; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="./img/logo.png" style="height: 32px;">
+          <span style="font-weight: 700; color: #111827;">Admin Portal</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button class="btn-sm btn-ghost" onclick="testCloudConnection()">📡 Test Cloud</button>
+          <a href="./index.html" class="button ghost btn-sm">View Store ↗</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="admin-container">
+
+      <!-- Stats / Actions -->
+      <div class="admin-card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h1 style="margin: 0; font-size: 1.5rem;">Dashboard</h1>
+            <p class="muted" style="margin: 4px 0 0;">Managing <span id="product-count"
+                style="font-weight: bold;">0</span> products</p>
+          </div>
+          <div class="action-bar">
+            <button class="button btn-sm btn-ghost" onclick="downloadBackup()">💾 Backup Data</button>
+            <input type="file" id="restore-input" hidden accept=".json" onchange="restoreBackup(this)">
+            <button class="button btn-sm btn-ghost" onclick="document.getElementById('restore-input').click()">📂
+              Restore</button>
+            <div style="width: 1px; background: #e5e7eb; margin: 0 8px;"></div>
+            <button class="button btn-sm btn-warning" onclick="applyGlobalDiscount()">⚡ Set Global Discount</button>
+            <button class="button btn-sm btn-danger" onclick="loadDefaults()">Reset to Defaults</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+
+        <!-- Add Product Form -->
+        <aside>
+          <!-- Offer Banner Settings -->
+          <div class="admin-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title">Offer Banner</h3>
+            </div>
+            <div class="form-group">
+              <label>Banner Image</label>
+              <div class="upload-area" id="banner-drop-zone">
+                <input type="file" id="banner-file-input" accept="image/*" hidden>
+                <input type="hidden" id="banner-url">
+                <button type="button" class="button ghost btn-sm"
+                  onclick="document.getElementById('banner-file-input').click()">Choose Image</button>
+                <div id="banner-status"></div>
+                <img id="banner-preview-img"
+                  style="max-width: 100%; height: 80px; object-fit: cover; margin-top: 10px; display: none; border-radius: 6px;">
+              </div>
+            </div>
+            <button class="button primary" style="width: 100%;" onclick="saveBanner()">Set Banner</button>
+          </div>
+
+          <div class="admin-card">
+            <div class="card-header">
+              <h3 class="card-title">Add New Product</h3>
+            </div>
+
+            <form id="add-form">
+              <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" name="name" class="form-control" required placeholder="e.g. Spicy Mixture">
+              </div>
+
+              <div class="form-group">
+                <label>Category</label>
+                <select name="category" class="form-control" required>
+                  <option value="mixture">Mixture</option>
+                  <option value="murukku">Murukku</option>
+                  <option value="sev">Sev</option>
+                  <option value="seeval">Seeval</option>
+                  <option value="chips">Chips</option>
+                  <option value="varkey">Varkey</option>
+                  <option value="sweet">Sweet / Mittai</option>
+                  <option value="cookie">Cookie</option>
+                  <option value="rusk">Rusk</option>
+                </select>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                  <label>Price (₹)</label>
+                  <input type="number" name="price" class="form-control" required min="0" value="0">
+                </div>
+                <div class="form-group">
+                  <label>Discount (%)</label>
+                  <input type="number" name="discount" class="form-control" min="0" max="100" value="10">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Weight (grams)</label>
+                <input type="number" name="grams" class="form-control" required value="250">
+              </div>
+
+              <div class="form-group">
+                <label>Product Image</label>
+                <div class="upload-area" id="drop-zone">
+                  <input type="file" id="file-input" accept="image/*" hidden>
+                  <input type="hidden" name="image" id="final-image-url">
+                  <button type="button" class="button ghost btn-sm"
+                    onclick="document.getElementById('file-input').click()">Choose File</button>
+                  <div id="upload-status"></div>
+                  <img id="preview-img"
+                    style="max-width: 100%; height: 60px; object-fit: contain; margin-top: 10px; display: none;">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" class="form-control" rows="2"></textarea>
+              </div>
+
+              <button type="submit" class="button primary" style="width: 100%;" id="submit-btn" disabled>Add
+                Product</button>
+            </form>
+          </div>
+        </aside>
+
+        <!-- Product Table -->
+        <main class="admin-card">
+          <div class="card-header">
+            <h3 class="card-title">Inventory</h3>
+            <button class="button ghost btn-sm" onclick="refreshTable()">↻ Refresh</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 60px;">Image</th>
+                  <th>Name</th>
+                  <th style="width: 100px;">Price</th>
+                  <th style="width: 80px;">Disc %</th>
+                  <th style="width: 80px;">Grams</th>
+                  <th style="width: 80px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <tr>
+                  <td colspan="6" style="text-align:center; padding: 20px;">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+  <script src="./app.js?v=2"></script>
+
+  <script>
+    const ADMIN_PASS = "admin123";
+
+    // --- Auth Logic ---
+    function attemptLogin() {
+      const input = document.getElementById("admin-pass");
+      if (input.value === ADMIN_PASS) {
+        document.getElementById("login-overlay").style.opacity = "0";
+        setTimeout(() => document.getElementById("login-overlay").remove(), 300);
+
+        const app = document.getElementById("app-root");
+        app.style.opacity = "1";
+        app.style.pointerEvents = "auto";
+
+        initAdmin();
+      } else {
+        alert("Incorrect Password");
+        input.value = "";
+      }
+    }
+
+    // --- Core Logic ---
+    async function initAdmin() {
+      // Wait for app.js to exist
+      if (!window.mymoonAdmin) {
+        setTimeout(initAdmin, 200);
+        return;
+      }
+      await refreshTable();
+      setupUploadLogic();
+    }
+
+    async function getProducts() {
+      return await window.mymoonAdmin.loadProductsFromFirebase();
+    }
+
+    async function save(list) {
+      await window.mymoonAdmin.saveProducts(list);
+      await refreshTable();
+    }
+
+    async function refreshTable() {
+      const list = await getProducts();
+      document.getElementById("product-count").textContent = list.length;
+      const tbody = document.getElementById("table-body");
+      tbody.innerHTML = "";
+
+      list.forEach((p, idx) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+           <td><img src="${p.image || './img/logo.png'}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
+           <td>
+             <input value="${p.name}" class="inline-input" onchange="updateRow(${idx}, 'name', this.value)" style="min-width: 140px;">
+           </td>
+           <td>
+             <input type="number" value="${p.price}" class="inline-input" onchange="updateRow(${idx}, 'price', this.value)">
+           </td>
+           <td>
+             <input type="number" value="${p.discount || 0}" class="inline-input" onchange="updateRow(${idx}, 'discount', this.value)">
+           </td>
+           <td>
+             <input type="number" value="${p.grams}" class="inline-input" onchange="updateRow(${idx}, 'grams', this.value)">
+           </td>
+           <td>
+             <button onclick="deleteProduct(${idx})" style="color: var(--danger); background:none; border:none; cursor:pointer;">🗑️</button>
+           </td>
+         `;
+        tbody.appendChild(row);
+      });
+    }
+
+    window.updateRow = async (idx, field, value) => {
+      const list = await getProducts();
+      if (list[idx]) {
+        // Auto-convert numbers
+        if (['price', 'grams', 'discount'].includes(field)) {
+          value = Number(value);
+        }
+        list[idx][field] = value;
+        // Optimistic update? No, safer to save -> refresh
+        await save(list);
+      }
+    };
+
+    window.deleteProduct = async (idx) => {
+      if (confirm("Delete this product?")) {
+        const list = await getProducts();
+        list.splice(idx, 1);
+        await save(list);
+      }
+    };
+
+    // --- Migration & Global Tools ---
+    window.applyGlobalDiscount = async () => {
+      const percent = prompt("Set Discount % for ALL products:", "10");
+      if (!percent) return;
+      const val = Number(percent);
+      if (isNaN(val)) return alert("Invalid Number");
+
+      const list = await getProducts();
+      list.forEach(p => p.discount = val);
+      await save(list);
+      alert("Updated all products!");
+    };
+
+    window.downloadBackup = async () => {
+      const list = await getProducts();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(list, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = "mymoon_backup_" + Date.now() + ".json";
+      a.click();
+    };
+
+    window.restoreBackup = async (input) => {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const json = JSON.parse(e.target.result);
+          if (Array.isArray(json) && confirm(`Restore ${json.length} products?`)) {
+            await save(json);
+          }
+        } catch (err) { alert("Error reading backup"); }
+      };
+      reader.readAsText(file);
+    };
+
+    window.loadDefaults = async () => {
+      if (confirm("Factory Reset: Delete all products and load defaults?")) {
+        await window.mymoonAdmin.initializeFirebaseWithDefaults();
+        await refreshTable();
+      }
+    };
+
+    window.testCloudConnection = async () => {
+      alert("Running Connectivity Test...\nCheck Console for details if this fails.");
+      try {
+        const db = window.firebaseDB;
+        await db.collection('products').doc('test_ping').set({ t: Date.now() });
+        await db.collection('products').doc('test_ping').delete();
+        alert("✅ Cloud Connection: ONLINE\nRead/Write permissions are working.");
+      } catch (e) {
+        alert("❌ Cloud Connection: FAILED\n" + e.message + "\n\nFix: Go to Firebase Console -> Rules -> allow read, write: if true;");
+      }
+    };
+
+    // --- Image Upload & Add Form ---
+    function setupUploadLogic() {
+      const fileInput = document.getElementById("file-input");
+      const statusDiv = document.getElementById("upload-status");
+      const preview = document.getElementById("preview-img");
+      const hiddenUrl = document.getElementById("final-image-url");
+      const submitBtn = document.getElementById("submit-btn");
+
+      // Initial State
+      submitBtn.disabled = false; // Allow adding without image (uses logo)
+
+      fileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        statusDiv.innerHTML = `<span class="status-pill loading">Uploading...</span>`;
+        submitBtn.disabled = true;
+
+        // 1. Try Firebase Storage
+        let url = "";
+        let usedFallback = false;
+
+        try {
+          if (window.firebaseStorage) {
+            const ref = window.firebaseStorage.ref().child('products/' + Date.now() + "_" + file.name);
+
+            // Race: Storage Upload vs 3s Timeout (Assume blocked)
+            const uploadPromise = ref.put(file);
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 4000));
+
+            await Promise.race([uploadPromise, timeoutPromise]);
+            url = await ref.getDownloadURL();
+          } else {
+            throw new Error("No Storage SDK");
+          }
+        } catch (err) {
+          console.warn("Cloud upload failed (" + err.message + "), using Local fallback.");
+          usedFallback = true;
+        }
+
+        // 2. Fallback to Base64
+        if (!url || usedFallback) {
+          url = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.readAsDataURL(file);
+          });
+          statusDiv.innerHTML = `<span class="status-pill warning" title="Cloud blocked, saved locally">⚠  Saved Locally</span>`;
+        } else {
+          statusDiv.innerHTML = `<span class="status-pill success">Cloud Uploaded</span>`;
+        }
+
+        hiddenUrl.value = url;
+        preview.src = url;
+        preview.style.display = "block";
+        submitBtn.disabled = false;
+      });
+
+      document.getElementById("add-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        const newProduct = {
+          id: formData.get("name").toLowerCase().replace(/[^a-z0-9]/g, '-'),
+          name: formData.get("name"),
+          category: formData.get("category"),
+          price: Number(formData.get("price")),
+          discount: Number(formData.get("discount")),
+          grams: Number(formData.get("grams")),
+          image: formData.get("image") || "./img/logo.png",
+          description: formData.get("description"),
+          tag: "savory"
+        };
+
+        const list = await getProducts();
+        list.push(newProduct);
+        await save(list);
+
+        // Reset Form
+        e.target.reset();
+        preview.style.display = "none";
+        statusDiv.innerHTML = "";
+        hiddenUrl.value = "";
+        alert("Product Added.");
+      });
+    }
+
+  </script>
+
+  <script>
+    // --- Banner Logic ---
+    const bannerInput = document.getElementById("banner-file-input");
+    const bannerStatus = document.getElementById("banner-status");
+    const bannerUrlField = document.getElementById("banner-url");
+    const bannerPreview = document.getElementById("banner-preview-img");
+
+    bannerInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      bannerStatus.innerHTML = `<span class="status-pill loading">Uploading...</span>`;
+
+      // 1. Try Firebase Storage
+      let url = "";
+      let usedFallback = false;
+
+      try {
+        if (window.firebaseStorage) {
+          const ref = window.firebaseStorage.ref().child('banners/' + Date.now() + "_" + file.name);
+
+          // Strict Login: Race against 4 second timeout
+          const uploadPromise = ref.put(file);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 4000));
+
+          await Promise.race([uploadPromise, timeoutPromise]);
+          url = await ref.getDownloadURL();
+        } else {
+          throw new Error("No Storage SDK");
+        }
+      } catch (err) {
+        console.warn("Banner cloud upload failed (" + err.message + "), using Local fallback.");
+        usedFallback = true;
+      }
+
+      // 2. Fallback to Base64
+      if (!url || usedFallback) {
+        url = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = (ev) => resolve(ev.target.result);
+          reader.readAsDataURL(file);
+        });
+        bannerStatus.innerHTML = `<span class="status-pill warning">⚠ Saved Locally</span>`;
+      } else {
+        bannerStatus.innerHTML = `<span class="status-pill success">Cloud Uploaded</span>`;
+      }
+
+      bannerUrlField.value = url;
+      bannerPreview.src = url;
+      bannerPreview.style.display = "block";
+    });
+
+    async function saveBanner() {
+      const url = bannerUrlField.value;
+      if (!url) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      try {
+        await window.firebaseDB.collection('settings').doc('home').set({
+          offerBannerUrl: url
+        }, { merge: true });
+        alert("Offer Banner Updated!");
+      } catch (error) {
+        console.error("Error saving banner:", error);
+        alert("Failed to save banner.");
+      }
+    }
+
+    // Load existing banner
+    function loadBannerSetting() {
+      if (window.firebaseDB) {
+        window.firebaseDB.collection('settings').doc('home').get().then(doc => {
+          if (doc.exists && doc.data().offerBannerUrl) {
+            const url = doc.data().offerBannerUrl;
+            bannerUrlField.value = url;
+            bannerPreview.src = url;
+            bannerPreview.style.display = "block";
+          }
+        });
+      }
+    }
+
+    // Call after auth or page load
+    // We'll hook into the existing init flow if possible, or just call it safely
+    setTimeout(loadBannerSetting, 2000); // Simple delay to wait for auth
+  </script>
+</body>
+
+</html>

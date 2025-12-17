@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>MyMoon Stores | Authentic Indian Snacks</title>
+    <meta name="description"
+        content="Order authentic homemade Murukku, Sev, and Sweets online. Freshly made, premium ingredients, delivered with love." />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" type="image/png" href="./img/logo.png" />
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header class="topbar">
+        <div class="container topbar__row">
+            <a href="./index.html" class="logo">
+                <img src="./img/logo.png" alt="Logo" />
+                <span>MYMOON STORES</span>
+            </a>
+            <div class="nav-actions">
+                <a href="./cart.html" class="cart-btn-mobile">
+                    🛒
+                    <span class="cart-badge" id="cart-count">0</span>
+                </a>
+                <div class="hamburger" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="mobile-menu-overlay">
+            <a href="./index.html">Home</a>
+            <a href="./shop.html">Products</a>
+            <a href="./index.html">About Us</a>
+            <a href="tel:9943277884">Bulk Order</a>
+            <a href="./cart.html">Cart</a>
+        </div>
+        <!-- Mobile Scroll Nav -->
+        <nav class="mobile-nav container">
+            <a href="./index.html" class="active">Home</a>
+            <a href="./shop.html">Shop All</a>
+            <a href="./shop.html#mixture">Mixture</a>
+            <a href="./shop.html#murukku">Murukku</a>
+            <a href="./shop.html#sweets">Sweets</a>
+            <a href="./shop.html#contact">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Mobile-First Hero -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero__content">
+                    <span class="badge-new">✨ Freshly Homemade</span>
+                    <h1>MYMOON STORES</h1>
+                    <h2>The Snacks World</h2>
+                    <h6>With The 47 Years of Experience </h6>
+                    <p>We are Stepping into The Online Business World</p>
+                    <div class="hero__btns">
+                        <a href="./shop.html" class="button primary big pulse-anim">Order Now ➔</a>
+                        <a href="https://forms.gle/skMrXNePhnb7M97K7" class="button ghost big">Rate Us ⭐</a>
+                    </div>
+                    <div class="trust-indicators">
+                        <span>🚀 Fast Delivery</span>
+                        <span>🥬 Pure Veg</span>
+                        <span>✅ 5000+ Customers</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Offer Banner -->
+        <section class="section" id="offer-banner-section" style="display: none;">
+            <div class="container">
+                <div class="banner-container" id="banner-wrapper">
+                    <img id="offer-banner-img" src="" alt="Limited Offer">
+                </div>
+            </div>
+        </section>
+
+        <script>
+            // Optimize: Start fetching immediately
+            (function fetchBanner() {
+                const initBanner = () => {
+                    if (window.firebaseDB) {
+                        window.firebaseDB.collection('settings').doc('home').get().then((doc) => {
+                            if (doc.exists && doc.data().offerBannerUrl) {
+                                const url = doc.data().offerBannerUrl;
+                                const img = document.getElementById('offer-banner-img');
+                                const section = document.getElementById('offer-banner-section');
+                                const wrapper = document.getElementById('banner-wrapper');
+                                if (url) {
+                                    img.src = url;
+                                    section.style.display = 'block';
+                                    setTimeout(() => wrapper.classList.add('fade-in-up'), 50);
+                                }
+                            }
+                        }).catch(console.error);
+                    } else {
+                        // Retry if Firebase not ready yet (rare race condition)
+                        setTimeout(initBanner, 100);
+                    }
+                };
+
+                // Run as soon as possible
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initBanner);
+                } else {
+                    initBanner();
+                }
+            })();
+        </script>
+
+        <!-- Visual Categories (Mobile Grid) -->
+        <section class="section pt-0">
+            <div class="container">
+                <h3 class="section-title">Shop by Category</h3>
+                <div class="category-grid">
+                    <a href="./shop.html#mixture" class="cat-card mixture">
+                        <span>Mixture</span>
+                        <img src="./img/bombay-mixture.jpg" alt="Mixture">
+                    </a>
+                    <a href="./shop.html#murukku" class="cat-card murukku">
+                        <span>Murukku</span>
+                        <img src="./img/white-ring-murukku.jpg" alt="Murukku">
+                    </a>
+                    <a href="./shop.html#sweets" class="cat-card sweet">
+                        <span>Sweets</span>
+                        <img src="./img/orange-mittai.jpg" alt="Sweets">
+                    </a>
+                    <a href="./shop.html" class="cat-card all">
+                        <span>View All</span>
+                        <span class="arrow">➔</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Features -->
+        <section class="section bg-soft">
+            <div class="container">
+                <div class="feature-row">
+                    <div class="feature-item">
+                        <div class="icon-box">🌿</div>
+                        <div>
+                            <h4>100% Natural</h4>
+                            <p>No preservatives or chemicals.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="icon-box">🔥</div>
+                        <div>
+                            <h4>Made Fresh</h4>
+                            <p>Prepared only after you order.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="icon-box">🚚</div>
+                        <div>
+                            <h4>Quick Ship</h4>
+                            <p>Dispatched within 24 hours.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews Carousel -->
+        <section id="reviews" class="section">
+            <div class="container">
+                <h3 class="section-title">Happy Customers</h3>
+                <div class="review-scroller">
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐½</div>
+                        <p>"The Garlic Murukku is addictive! Reminds me of home."</p>
+                        <small>- Priya, Chennai</small>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐</div>
+                        <p>"Excellent packaging. The sweets were fresh and soft."</p>
+                        <small>- Rahul, Bangalore</small>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <p>"Best mixture I've had in years. Highly recommended!"</p>
+                        <small>- Anita, Mumbai</small>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐½</div>
+                        <p>"Very fast delivery and great support."</p>
+                        <small>- Karthik, Trichy</small>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <p>"Authentic taste! The murukku was crispy and perfect."</p>
+                        <small>- Saravanan, Palani</small>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐</div>
+                        <p>"Freshness intact even in the cool hills. Loved the sweets."</p>
+                        <small>- Thomas, Valparai</small>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <p>"Famous Dindigul taste in every bite. Highly recommended!"</p>
+                        <small>- Meenakshi, Dindigul</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom CTA -->
+        <section class="section text-center">
+            <div class="container">
+                <h2>Ready to Snack?</h2>
+                <a href="./shop.html" class="button primary big" style="width: 100%; max-width: 300px;">Explore Menu</a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Address</h4>
+                    <p>No,6 new market<br>valparai 642 127</p>
+                </div>
+                <br>
+                <div class="footer-section">
+                    <h4>Contact Us</h4>
+                    <p>
+                        <a href="mailto:mymoonstores.online@gmail.com"
+                            style="display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; margin-bottom: 8px;">
+                            📧 mymoonstores.online@gmail.com
+                        </a>
+                        <a href="https://wa.me/919486977884"
+                            style="display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; margin-bottom: 8px;">
+                            💬 +91 94869 77884
+                        </a>
+                    </p>
+                    <div style="display: flex; gap: 12px; margin-top: 8px;">
+                        <a href="tel:+919943277884" style="color: inherit; text-decoration: none;">📞 99432 77884</a>
+                        <span style="opacity: 0.5;">|</span>
+                        <a href="tel:+919443577884" style="color: inherit; text-decoration: none;">📞 94435 77884</a>
+                    </div>
+                </div>
+            </div>
+            <hr style="margin: 24px 0; border-color: rgba(255,255,255,0.1);">
+            <div class="footer-row"
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <p style="margin: 0;">© 2025 MYMOON STORES</p>
+                <div class="footer-links">
+                    <a href="#">Privacy</a>
+                    <a href="./admin.html">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js" defer></script>
+    <script src="./firebase-config.js" defer></script>
+    <script src="./app.js?v=2" defer></script>
+
+</body>
+
+</html>

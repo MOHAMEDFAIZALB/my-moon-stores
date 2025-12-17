@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firebase Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #f0f0f0; }
+    .box { background: white; padding: 20px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #ccc; }
+    .success { border-left-color: green; }
+    .error { border-left-color: red; }
+    .pending { border-left-color: orange; }
+    h1 { color: #333; }
+    pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Firebase Connection Test</h1>
+  
+  <div id="status-firebase" class="box pending">
+    <strong>Firebase SDK:</strong> <span id="firebase-status">Loading...</span>
+  </div>
+  
+  <div id="status-firestore" class="box pending">
+    <strong>Firestore:</strong> <span id="firestore-status">Waiting...</span>
+  </div>
+  
+  <div id="status-products" class="box pending">
+    <strong>Products from Firestore:</strong> <span id="products-status">Waiting...</span>
+  </div>
+  
+  <div class="box">
+    <h3>Console Logs:</h3>
+    <pre id="console-output"></pre>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <script>
+    const output = document.getElementById("console-output");
+    
+    function log(msg) {
+      console.log(msg);
+      output.textContent += msg + "\n";
+      output.scrollTop = output.scrollHeight;
+    }
+    
+    // Check Firebase SDK
+    log("1. Checking Firebase SDK...");
+    if (typeof firebase !== 'undefined') {
+      log("✓ Firebase SDK loaded");
+      document.getElementById("firebase-status").textContent = "✓ Loaded";
+      document.getElementById("firebase-status").parentElement.className = "box success";
+    } else {
+      log("✗ Firebase SDK NOT found");
+      document.getElementById("firebase-status").textContent = "✗ Not found";
+      document.getElementById("firebase-status").parentElement.className = "box error";
+    }
+  </script>
+  
+  <!-- Firebase Config -->
+  <script src="./firebase-config.js"></script>
+  
+  <script>
+    // Check Firestore
+    log("\n2. Checking Firestore initialization...");
+    if (typeof window.firebaseDB !== 'undefined' && window.firebaseDB) {
+      log("✓ Firestore initialized");
+      log("   firebaseDB type: " + typeof window.firebaseDB);
+      log("   firebaseDB methods: " + Object.keys(window.firebaseDB).slice(0, 5).join(", ") + "...");
+      document.getElementById("firestore-status").textContent = "✓ Connected";
+      document.getElementById("firestore-status").parentElement.className = "box success";
+      
+      // Try to load products
+      log("\n3. Attempting to load products from Firestore...");
+      window.firebaseDB.collection('products').get()
+        .then(snapshot => {
+          log("✓ Successfully connected to products collection");
+          log(`   Found ${snapshot.size} products`);
+          document.getElementById("products-status").textContent = `✓ Found ${snapshot.size} products`;
+          document.getElementById("products-status").parentElement.className = "box success";
+          
+          snapshot.forEach(doc => {
+            log(`   - ${doc.id}: ${doc.data().name || "Unnamed"}`);
+          });
+        })
+        .catch(error => {
+          log("✗ Error loading products: " + error.message);
+          document.getElementById("products-status").textContent = "✗ Error: " + error.message;
+          document.getElementById("products-status").parentElement.className = "box error";
+        });
+    } else {
+      log("✗ Firestore NOT initialized");
+      document.getElementById("firestore-status").textContent = "✗ Not initialized";
+      document.getElementById("firestore-status").parentElement.className = "box error";
+    }
+  </script>
+</body>
+</html>

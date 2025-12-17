@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Initialize Products - MyMoon Store</title>
+  <style>
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      padding: 40px 20px;
+      background: #f5f5f5;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h1 { color: #ff7a1a; margin-top: 0; }
+    .status { padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: 600; }
+    .pending { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+    .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+    .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+    .progress { margin: 20px 0; }
+    .progress-bar { background: #e0e0e0; height: 20px; border-radius: 10px; overflow: hidden; }
+    .progress-fill { background: #ff7a1a; height: 100%; width: 0%; transition: width 0.3s ease; }
+    .details { background: #f9f9f9; padding: 15px; border-radius: 8px; max-height: 300px; overflow-y: auto; margin: 15px 0; font-family: monospace; font-size: 0.85rem; line-height: 1.5; }
+    .product-item { padding: 8px; border-bottom: 1px solid #e0e0e0; }
+    .product-item:last-child { border-bottom: none; }
+    button { padding: 12px 24px; background: #ff7a1a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; }
+    button:hover { background: #f15a24; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📦 Initialize Products Catalog</h1>
+    <p>This page will automatically load all 38 MyMoon Store products into your Firebase database.</p>
+    
+    <div id="status-firebase" class="status pending">
+      <strong>Firebase Connection:</strong> <span id="firebase-text">Checking...</span>
+    </div>
+    
+    <div id="status-products" class="status pending">
+      <strong>Products Status:</strong> <span id="products-text">Waiting...</span>
+    </div>
+    
+    <div class="progress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div style="text-align: center; margin-top: 8px;">
+        <span id="progress-text">0 / 38 products</span>
+      </div>
+    </div>
+    
+    <div class="details" id="details"></div>
+    
+    <button id="init-btn" onclick="initializeProducts()">Start Initialization</button>
+    <button id="retry-btn" onclick="location.reload()" style="background: #6c757d; display: none; margin-left: 10px;">Retry</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="./firebase-config.js"></script>
+  
+  <!-- App JS for defaultProducts -->
+  <script src="./app.js"></script>
+  
+  <script>
+    const detailsDiv = document.getElementById("details");
+    const firebaseStatus = document.getElementById("firebase-text");
+    const productsStatus = document.getElementById("products-text");
+    const progressFill = document.getElementById("progress-fill");
+    const progressText = document.getElementById("progress-text");
+    const initBtn = document.getElementById("init-btn");
+    const retryBtn = document.getElementById("retry-btn");
+    
+    function log(msg) {
+      console.log(msg);
+      const line = document.createElement("div");
+      line.className = "product-item";
+      line.textContent = msg;
+      detailsDiv.appendChild(line);
+      detailsDiv.scrollTop = detailsDiv.scrollHeight;
+    }
+    
+    function updateProgress(current, total) {
+      const percent = (current / total) * 100;
+      progressFill.style.width = percent + "%";
+      progressText.textContent = `${current} / ${total} products`;
+    }
+    
+    function setStatus(elementId, className, text) {
+      const el = document.getElementById(elementId);
+      el.className = "status " + className;
+      document.getElementById(elementId.replace("status-", "") + "-text").textContent = text;
+    }
+    
+    // Check Firebase connection
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        if (typeof window.firebaseDB !== 'undefined' && window.firebaseDB) {
+          log("✓ Firebase connected successfully");
+          setStatus("status-firebase", "success", "✓ Connected");
+          checkProductsCount();
+        } else {
+          log("✗ Firebase NOT initialized");
+          setStatus("status-firebase", "error", "✗ Connection failed");
+          initBtn.disabled = true;
+          retryBtn.style.display = "inline-block";
+        }
+      }, 1000);
+    });
+    
+    async function checkProductsCount() {
+      try {
+        const snapshot = await window.firebaseDB.collection('products').get();
+        const count = snapshot.size;
+        
+        if (count === 0) {
+          log("Database is empty. Click button below to initialize.");
+          setStatus("status-products", "pending", "0 products found - Ready to initialize");
+        } else {
+          log(`✓ Found ${count} products in database`);
+          setStatus("status-products", "success", `${count} products already in database`);
+          initBtn.textContent = "Reinitialize (overwrite)";
+        }
+      } catch (error) {
+        log("✗ Error checking products: " + error.message);
+        setStatus("status-products", "error", "Error: " + error.message);
+      }
+    }
+    
+    async function initializeProducts() {
+      if (typeof window.firebaseDB === 'undefined' || !window.firebaseDB) {
+        log("✗ Firebase not available");
+        return;
+      }
+      
+      if (typeof defaultProducts === 'undefined') {
+        log("✗ Products not loaded from app.js");
+        return;
+      }
+      
+      initBtn.disabled = true;
+      log("Starting initialization...");
+      log(`Preparing to save ${defaultProducts.length} products`);
+      
+      try {
+        // Delete existing products first
+        log("Clearing existing products...");
+        const existing = await window.firebaseDB.collection('products').get();
+        let deleteCount = 0;
+        const deleteBatch = window.firebaseDB.batch();
+        existing.forEach(doc => {
+          deleteBatch.delete(doc.ref);
+          deleteCount++;
+        });
+        if (deleteCount > 0) {
+          await deleteBatch.commit();
+          log(`✓ Deleted ${deleteCount} existing products`);
+        }
+        
+        // Save all products in batches
+        log("Saving all products...");
+        const batchSize = 500; // Firestore batch limit
+        for (let i = 0; i < defaultProducts.length; i += batchSize) {
+          const batch = window.firebaseDB.batch();
+          const batchProducts = defaultProducts.slice(i, Math.min(i + batchSize, defaultProducts.length));
+          
+          batchProducts.forEach(product => {
+            const { id, ...productData } = product;
+            const docRef = window.firebaseDB.collection('products').doc(id);
+            batch.set(docRef, productData);
+          });
+          
+          await batch.commit();
+          updateProgress(Math.min(i + batchSize, defaultProducts.length), defaultProducts.length);
+          log(`✓ Saved batch: ${Math.min(i + batchSize, defaultProducts.length)}/${defaultProducts.length}`);
+        }
+        
+        setStatus("status-products", "success", `✓ All ${defaultProducts.length} products saved!`);
+        log("✓ Initialization complete!");
+        log("All products are now in your Firebase database.");
+        log("You can now manage them from admin.html");
+        
+      } catch (error) {
+        log("✗ Error during initialization: " + error.message);
+        setStatus("status-products", "error", "Error: " + error.message);
+        initBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

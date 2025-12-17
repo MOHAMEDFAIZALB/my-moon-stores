@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Diagnostic - MyMoon Store</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      margin: 0;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #ff7a1a; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    .box { background: white; padding: 20px; border-radius: 12px; border-left: 4px solid #ccc; }
+    .box.ok { border-left-color: #28a745; }
+    .box.warn { border-left-color: #ffc107; }
+    .box.error { border-left-color: #dc3545; }
+    .status-line { padding: 8px; margin: 4px 0; border-radius: 4px; font-family: monospace; font-size: 0.9rem; }
+    .ok { background: #d4edda; color: #155724; }
+    .warn { background: #fff3cd; color: #856404; }
+    .error { background: #f8d7da; color: #721c24; }
+    .details { background: #f9f9f9; padding: 12px; border-radius: 4px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+    .details pre { margin: 0; font-size: 0.85rem; }
+    button { padding: 10px 20px; background: #ff7a1a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 10px 5px 10px 0; }
+    button:hover { background: #f15a24; }
+    code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 System Diagnostic Tool</h1>
+    <p>This page checks all components needed for the admin panel to work.</p>
+    
+    <div class="grid">
+      <!-- Firebase -->
+      <div class="box">
+        <h3>Firebase SDK</h3>
+        <div id="firebase-check"></div>
+      </div>
+      
+      <!-- Firestore -->
+      <div class="box">
+        <h3>Firestore Database</h3>
+        <div id="firestore-check"></div>
+      </div>
+      
+      <!-- App.js -->
+      <div class="box">
+        <h3>App.js & Products</h3>
+        <div id="app-check"></div>
+      </div>
+      
+      <!-- Storage -->
+      <div class="box">
+        <h3>Storage & Cache</h3>
+        <div id="storage-check"></div>
+      </div>
+    </div>
+    
+    <div class="box" style="margin-top: 20px;">
+      <h3>Quick Actions</h3>
+      <button onclick="loadAndDisplayProducts()">📊 Load & Display Products</button>
+      <button onclick="checkFirebaseConnection()">🔌 Test Firebase Connection</button>
+      <button onclick="clearCache()">🗑️ Clear Local Storage</button>
+      <button onclick="location.reload()">🔄 Refresh Page</button>
+      
+      <div id="action-result" style="margin-top: 15px;"></div>
+    </div>
+    
+    <div class="box" style="margin-top: 20px;">
+      <h3>Product List in Database</h3>
+      <div id="products-list"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="./firebase-config.js"></script>
+  
+  <!-- App JS -->
+  <script src="./app.js"></script>
+  
+  <script>
+    function createStatusLine(text, isOk) {
+      const div = document.createElement("div");
+      div.className = "status-line " + (isOk ? "ok" : "error");
+      div.textContent = (isOk ? "✓ " : "✗ ") + text;
+      return div;
+    }
+    
+    // Check Firebase SDK
+    setTimeout(() => {
+      const firebaseCheck = document.getElementById("firebase-check");
+      if (typeof firebase !== 'undefined') {
+        firebaseCheck.appendChild(createStatusLine("Firebase SDK v9.23.0 loaded", true));
+      } else {
+        firebaseCheck.appendChild(createStatusLine("Firebase SDK NOT found", false));
+      }
+    }, 500);
+    
+    // Check Firestore
+    setTimeout(() => {
+      const firestoreCheck = document.getElementById("firestore-check");
+      if (typeof window.firebaseDB !== 'undefined' && window.firebaseDB) {
+        firestoreCheck.appendChild(createStatusLine("Firestore initialized", true));
+        
+        // Try to query
+        window.firebaseDB.collection('products').get()
+          .then(snapshot => {
+            const count = snapshot.size;
+            const div = document.createElement("div");
+            div.className = "details";
+            div.innerHTML = `<pre>✓ Connected to database
+Products found: ${count}</pre>`;
+            firestoreCheck.appendChild(div);
+          })
+          .catch(err => {
+            const div = document.createElement("div");
+            div.className = "details error";
+            div.innerHTML = `<pre>✗ Error: ${err.message}</pre>`;
+            firestoreCheck.appendChild(div);
+          });
+      } else {
+        firestoreCheck.appendChild(createStatusLine("Firestore NOT initialized", false));
+      }
+    }, 1000);
+    
+    // Check App.js
+    setTimeout(() => {
+      const appCheck = document.getElementById("app-check");
+      
+      if (typeof defaultProducts !== 'undefined') {
+        appCheck.appendChild(createStatusLine(`${defaultProducts.length} default products loaded`, true));
+      } else {
+        appCheck.appendChild(createStatusLine("defaultProducts NOT found", false));
+      }
+      
+      if (typeof window.mymoonAdmin !== 'undefined') {
+        appCheck.appendChild(createStatusLine("mymoonAdmin API available", true));
+      } else {
+        appCheck.appendChild(createStatusLine("mymoonAdmin API NOT available", false));
+      }
+    }, 500);
+    
+    // Check Storage
+    setTimeout(() => {
+      const storageCheck = document.getElementById("storage-check");
+      
+      try {
+        localStorage.setItem("test", "test");
+        localStorage.removeItem("test");
+        storageCheck.appendChild(createStatusLine("localStorage working", true));
+      } catch (e) {
+        storageCheck.appendChild(createStatusLine("localStorage NOT working: " + e.message, false));
+      }
+      
+      const stored = localStorage.getItem("mymoon-products");
+      if (stored) {
+        try {
+          const products = JSON.parse(stored);
+          storageCheck.appendChild(createStatusLine(`${products.length} products in localStorage`, true));
+        } catch (e) {
+          storageCheck.appendChild(createStatusLine("localStorage data corrupted", false));
+        }
+      } else {
+        storageCheck.appendChild(createStatusLine("No products in localStorage", false));
+      }
+    }, 500);
+    
+    // Action functions
+    async function loadAndDisplayProducts() {
+      const result = document.getElementById("action-result");
+      result.innerHTML = "<div class='status-line'>Loading...</div>";
+      
+      try {
+        let products = [];
+        
+        if (typeof window.firebaseDB !== 'undefined' && window.firebaseDB) {
+          const snapshot = await window.firebaseDB.collection('products').get();
+          snapshot.forEach(doc => {
+            products.push({ id: doc.id, ...doc.data() });
+          });
+        } else {
+          products = window.mymoonAdmin?.loadProducts() || defaultProducts || [];
+        }
+        
+        result.innerHTML = `<div class="status-line ok">✓ Loaded ${products.length} products</div>`;
+        
+        const list = document.getElementById("products-list");
+        list.innerHTML = "";
+        
+        if (products.length > 0) {
+          const table = document.createElement("table");
+          table.style.width = "100%";
+          table.style.borderCollapse = "collapse";
+          
+          const header = table.createTHead();
+          const hrow = header.insertRow();
+          ["Name", "Category", "Price", "Grams"].forEach(text => {
+            const th = document.createElement("th");
+            th.textContent = text;
+            th.style.cssText = "border: 1px solid #ddd; padding: 8px; text-align: left; background: #f0f0f0;";
+            hrow.appendChild(th);
+          });
+          
+          const body = table.createTBody();
+          products.slice(0, 20).forEach(p => {
+            const row = body.insertRow();
+            [p.name || "—", p.category || "—", p.price || 0, p.grams || 0].forEach(text => {
+              const cell = row.insertCell();
+              cell.textContent = text;
+              cell.style.cssText = "border: 1px solid #ddd; padding: 8px;";
+            });
+          });
+          
+          list.appendChild(table);
+          if (products.length > 20) {
+            const note = document.createElement("p");
+            note.style.color = "#666";
+            note.textContent = `(Showing first 20 of ${products.length} products)`;
+            list.appendChild(note);
+          }
+        }
+      } catch (error) {
+        result.innerHTML = `<div class="status-line error">✗ Error: ${error.message}</div>`;
+      }
+    }
+    
+    async function checkFirebaseConnection() {
+      const result = document.getElementById("action-result");
+      result.innerHTML = "<div class='status-line'>Testing...</div>";
+      
+      if (typeof window.firebaseDB === 'undefined' || !window.firebaseDB) {
+        result.innerHTML = "<div class='status-line error'>✗ Firebase not initialized</div>";
+        return;
+      }
+      
+      try {
+        await window.firebaseDB.collection('products').limit(1).get();
+        result.innerHTML = "<div class='status-line ok'>✓ Firebase connection successful</div>";
+      } catch (error) {
+        result.innerHTML = `<div class='status-line error'>✗ Connection failed: ${error.message}</div>`;
+      }
+    }
+    
+    function clearCache() {
+      localStorage.removeItem("mymoon-products");
+      localStorage.removeItem("mymoon-cart");
+      document.getElementById("action-result").innerHTML = "<div class='status-line ok'>✓ Local storage cleared</div>";
+    }
+  </script>
+</body>
+</html>
